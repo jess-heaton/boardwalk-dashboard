@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boardwalk Property Co - Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #404547 0%, #2a2d2f 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            color: white;
+            font-weight: 200;
+            letter-spacing: -2px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header .tagline {
+            font-size: 0.8rem;
+            color: #f4dfde;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            color: #f4dfde;
+            font-weight: 300;
+            opacity: 0.8;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .chart-container {
+            background: rgba(244, 223, 222, 0.08);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            border: 1px solid rgba(244, 223, 222, 0.15);
+        }
+        
+        .testimonial-container {
+            background: rgba(244, 223, 222, 0.08);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            border: 1px solid rgba(244, 223, 222, 0.15);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+        
+        .testimonial-content {
+            width: 100%;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        
+        .testimonial-content.active {
+            opacity: 1;
+        }
+        
+        .testimonial-quote {
+            font-size: 1.1rem;
+            color: white;
+            font-style: italic;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            font-weight: 300;
+        }
+        
+        .testimonial-author {
+            font-size: 0.9rem;
+            color: #E6A8C2;
+            font-weight: 500;
+        }
+        
+        .testimonial-title {
+            font-size: 1.2rem;
+            color: white;
+            margin-bottom: 20px;
+            font-weight: 300;
+            text-align: center;
+        }
+        
+        .testimonial-dots {
+            display: none;
+        }
+        
+        .dot {
+            display: none;
+        }
+        
+        .dot.active {
+            display: none;
+        }
+        
+        .stats-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .chart-title {
+            font-size: 1.4rem;
+            margin-bottom: 25px;
+            text-align: center;
+            color: white;
+            font-weight: 300;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: rgba(244, 223, 222, 0.1);
+            backdrop-filter: blur(15px);
+            padding: 25px;
+            border-radius: 16px;
+            text-align: center;
+            border: 1px solid rgba(244, 223, 222, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            background: rgba(244, 223, 222, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 8px;
+            color: #E6A8C2;
+            line-height: 1;
+        }
+        
+        .stat-label {
+            color: #f4dfde;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.9;
+        }
+        
+        .postcode-list {
+            background: rgba(244, 223, 222, 0.08);
+            backdrop-filter: blur(15px);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid rgba(244, 223, 222, 0.15);
+        }
+        
+        .postcode-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(244, 223, 222, 0.1);
+        }
+        
+        .postcode-item:last-child {
+            border-bottom: none;
+        }
+        
+        .postcode-name {
+            font-weight: 500;
+            color: white;
+        }
+        
+        .postcode-value {
+            font-size: 1.1rem;
+            color: #E6A8C2;
+            font-weight: 500;
+        }
+        
+        #mainChart {
+            max-height: 420px;
+        }
+        
+        .refresh-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(244, 223, 222, 0.1);
+            backdrop-filter: blur(15px);
+            color: #f4dfde;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(244, 223, 222, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="refresh-indicator">
+        Last updated: <span id="lastUpdate"></span>
+    </div>
+    
+    <div class="header">
+        <div class="tagline">Independent Bristol Estate Agent</div>
+        <h1>Boardwalk</h1>
+        <p>Property Market Dashboard</p>
+    </div>
+    
+    <div class="dashboard-grid">
+        <div class="left-column">
+            <div class="chart-container">
+                <h2 class="chart-title">Monthly Property Activity by Postcode</h2>
+                <canvas id="mainChart"></canvas>
+            </div>
+            
+            <div class="testimonial-container">
+                <div class="testimonial-content active">
+                    <p class="testimonial-quote">"No hesitation I'm recommending you, excellent service especially given the various hiccups"</p>
+                    <p class="testimonial-author">Recent Client</p>
+                </div>
+                <div class="testimonial-content">
+                    <p class="testimonial-quote">"Your team were excellent throughout, and really pushed the sale through which I am so grateful for."</p>
+                    <p class="testimonial-author">Satisfied Seller</p>
+                </div>
+                <div class="testimonial-content">
+                    <p class="testimonial-quote">"Ruby was amazing - she kept us informed regularly and always responded really quickly. She helped with communications with the sellers, and made us feel as though there was no such thing as a stupid question!"</p>
+                    <p class="testimonial-author">Happy Buyer</p>
+                </div>
+                <div class="testimonial-content">
+                    <p class="testimonial-quote">"Incredibly grateful and appreciative for all that you did to get me to this point, excellent service and friendly people throughout!"</p>
+                    <p class="testimonial-author">Grateful Client</p>
+                </div>
+                <div class="testimonial-content">
+                    <p class="testimonial-quote">"Holly was great at keeping us in the loop with the seller. Ellis was great at chasing all parties and explaining the process to us. Thank you!"</p>
+                    <p class="testimonial-author">Recent Purchase</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats-sidebar">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalThisMonth">0</div>
+                    <div class="stat-label">This Month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="bestPostcode">-</div>
+                    <div class="stat-label">Top Postcode</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="monthlyChange">0%</div>
+                    <div class="stat-label">Monthly Change</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalProperties">0</div>
+                    <div class="stat-label">Total YTD</div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">Current Month Breakdown</h3>
+                <div class="postcode-list" id="postcodeList">
+                    <!-- Postcode breakdown will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Google Sheets configuration
+        const SHEET_ID = '1vPTRiGc7z6BYBMNMtFl0ITTxicbjzNJEQps2X_5VbZ4';
+        const API_KEY = 'AIzaSyCHuugUFIcMpMrRcslbXVfQW6sptchhuuo';
+        const PROPERTY_RANGE = 'Sheet1!A1:D100';   // Property data by postcode
+        const STATS_RANGE = 'Sheet2!A1:L100';     // Weekly performance stats  
+        const LEADS_RANGE = 'Sheet3!A1:Z25';      // Lead source tracking data
+        
+        let propertyData = {};
+        let statsData = [];
+        let leadsData = {};
+        let mainChart = null;
+
+        // Process weekly stats data
+        function processStatsData(rawData) {
+            console.log('Processing stats data:', rawData);
+            const processed = [];
+            
+            if (!rawData || rawData.length < 2) return processed;
+            
+            // Skip header row
+            for (let i = 1; i < rawData.length; i++) {
+                const row = rawData[i];
+                if (!row || row.length < 8) continue;
+                
+                const [week, leads, vals, appsReg, viewings, callsMade, callsRec, newInst, marketShare, salesAgreed, rmMarketShare] = row;
+                
+                if (!week) continue;
+                
+                processed.push({
+                    week: week,
+                    leads: parseInt(leads) || 0,
+                    valuations: parseInt(vals) || 0,
+                    appsRegistered: parseInt(appsReg) || 0,
+                    viewingsBooked: parseInt(viewings) || 0,
+                    callsMade: parseInt(callsMade) || 0,
+                    callsReceived: parseInt(callsRec) || 0,
+                    newInstructions: parseInt(newInst) || 0,
+                    marketShare: parseFloat(marketShare) || 0,
+                    salesAgreed: parseInt(salesAgreed) || 0,
+                    rmMarketShare: parseFloat(rmMarketShare) || 0
+                });
+            }
+            
+            console.log('Processed stats:', processed);
+            return processed;
+        }
+
+        // Fetch data from Google Sheets
+        async function fetchSheetData(range) {
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}?key=${API_KEY}`;
+            
+            try {
+                console.log('Fetching from URL:', url);
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log('API Response:', data);
+                return data.values || [];
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                return [];
+            }
+        }
+
+        // Process lead source data
+        function processLeadsData(rawData) {
+            console.log('Processing leads data:', rawData);
+            const processed = {
+                sources: [],
+                monthlyData: {},
+                totals: {},
+                yoyGrowth: {}
+            };
+            
+            if (!rawData || rawData.length < 8) return processed;
+            
+            // Get months from row 4 (index 3): JAN, FEB, MAR, APR, MAY (columns B-F)
+            const monthRow = rawData[3]; // Row 4
+            console.log('Month row:', monthRow);
+            const months = [];
+            for (let i = 1; i <= 5; i++) { // Columns B through F (indices 1-5)
+                if (monthRow && monthRow[i]) {
+                    months.push(monthRow[i]);
+                }
+            }
+            console.log('Extracted months:', months);
+            
+            // Process each lead source starting from row 5 (index 4) through row 20 (index 19)
+            for (let rowIndex = 4; rowIndex < Math.min(20, rawData.length); rowIndex++) {
+                const row = rawData[rowIndex];
+                if (!row || !row[0] || row[0].trim() === '') continue;
+                
+                const sourceName = row[0].trim();
+                console.log(`Processing source: ${sourceName}, row data:`, row);
+                
+                processed.sources.push(sourceName);
+                processed.monthlyData[sourceName] = {};
+                
+                // Get monthly values from columns B-F (indices 1-5)
+                let monthlyTotal = 0;
+                for (let colIndex = 1; colIndex <= 5; colIndex++) {
+                    const monthValue = parseInt(row[colIndex]) || 0;
+                    if (months[colIndex - 1]) {
+                        processed.monthlyData[sourceName][months[colIndex - 1]] = monthValue;
+                        monthlyTotal += monthValue;
+                    }
+                }
+                
+                // Get total from column G (index 6) - the "Total" column
+                const totalFromSheet = parseInt(row[6]) || 0;
+                processed.totals[sourceName] = totalFromSheet > 0 ? totalFromSheet : monthlyTotal;
+                
+                console.log(`Source ${sourceName}: monthly=${JSON.stringify(processed.monthlyData[sourceName])}, total=${processed.totals[sourceName]}`);
+            }
+            
+            console.log('Final processed leads data:', processed);
+            return processed;
+        }
+
+        // Create or update the main chart
+        function createChart(data) {
+            const months = Object.keys(data);
+            const allPostcodes = new Set();
+            
+            // Get all unique postcodes
+            months.forEach(month => {
+                Object.keys(data[month]).forEach(postcode => {
+                    allPostcodes.add(postcode);
+                });
+            });
+            
+            const postcodes = Array.from(allPostcodes).sort();
+            
+            const datasets = postcodes.map(postcode => ({
+                label: postcode,
+                data: months.map(month => data[month][postcode] || 0),
+                backgroundColor: postcodeColors[postcode] || '#999999',
+                borderColor: postcodeColors[postcode] || '#999999',
+                borderWidth: 1
+            }));
+
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            
+            if (mainChart) {
+                mainChart.destroy();
+            }
+            
+            mainChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: '#ffffff',
+                                font: {
+                                    size: 14,
+                                    family: 'Inter',
+                                    weight: '500'
+                                },
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.9)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#f4dfde',
+                            borderColor: '#E6A8C2',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            ticks: {
+                                color: '#ffffff',
+                                font: {
+                                    size: 14,
+                                    family: 'Inter',
+                                    weight: '500'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                                drawBorder: false
+                            }
+                        },
+                        y: {
+                            stacked: true,
+                            ticks: {
+                                color: '#ffffff',
+                                font: {
+                                    size: 14,
+                                    family: 'Inter',
+                                    weight: '500'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                                drawBorder: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Convert property sheet data to chart format
+        function processPropertyData(rawData) {
+            console.log('Processing property data:', rawData);
+            const processedData = {};
+            
+            if (!rawData || rawData.length < 2) return processedData;
+            
+            // Skip header row
+            for (let i = 1; i < rawData.length; i++) {
+                const row = rawData[i];
+                if (!row || row.length < 3) continue;
+                
+                const [month, source, count, date] = row;
+                
+                if (!month || !source || !count) continue;
+                
+                if (!processedData[month]) {
+                    processedData[month] = {};
+                }
+                
+                const numCount = typeof count === 'string' ? parseInt(count.replace(/,/g, '')) : parseInt(count);
+                processedData[month][source] = numCount || 0;
+            }
+            
+            console.log('Processed property data:', processedData);
+            return processedData;
+        }
+
+        // Pink-toned postcode colors for chart bars and better visibility
+        const postcodeColors = {
+            BS1: '#E6A8C2', BS2: '#DC96B4', BS3: '#D284A6', BS4: '#C87298',
+            BS5: '#BE608A', BS6: '#B44E7C', BS7: '#AA3C6E', BS8: '#A02A60',
+            BS9: '#961852', BS10: '#8C0644', BS11: '#E6A8C2', BS13: '#DC96B4',
+            BS14: '#D284A6', BS15: '#C87298', BS16: '#BE608A', Other: '#f4dfde'
+        };
+
+        // Calculate and display comprehensive stats
+        function updateStats(propertyData, statsData, leadsData) {
+            console.log('Updating stats with:', { propertyData, statsData, leadsData });
+            
+            // Use latest week's performance data for the 4 key stats
+            if (statsData && statsData.length > 0) {
+                const latestWeek = statsData[statsData.length - 1];
+                console.log('Latest week data:', latestWeek);
+                
+                // Update the first 3 performance metrics
+                document.getElementById('totalThisMonth').textContent = latestWeek.viewingsBooked || 0;
+                document.getElementById('bestPostcode').textContent = `${latestWeek.marketShare || 0}%`;
+                document.getElementById('monthlyChange').textContent = latestWeek.salesAgreed || 0;
+                
+                // Update labels for first 3 metrics
+                const labels = document.querySelectorAll('.stat-label');
+                if (labels.length >= 3) {
+                    labels[0].textContent = 'Viewings Booked';
+                    labels[1].textContent = 'Market Share';
+                    labels[2].textContent = 'Sales Agreed';
+                }
+            }
+            
+            // Get top postcode from property data (separate from stats data)
+            let topPostcode = 'N/A';
+            const months = Object.keys(propertyData);
+            if (months.length > 0 && propertyData[months[months.length - 1]]) {
+                const currentMonth = months[months.length - 1];
+                const postcodeEntries = Object.entries(propertyData[currentMonth]);
+                if (postcodeEntries.length > 0) {
+                    topPostcode = postcodeEntries.sort(([,a], [,b]) => b - a)[0][0];
+                }
+            }
+            
+            // Set top postcode as 4th stat (separate from stats data)
+            document.getElementById('totalProperties').textContent = topPostcode;
+            const labels = document.querySelectorAll('.stat-label');
+            if (labels.length >= 4) {
+                labels[3].textContent = 'Top Postcode';
+            }
+            
+            // Show lead sources in the side panel
+            const postcodeList = document.getElementById('postcodeList');
+            const sectionTitle = postcodeList.parentElement.querySelector('.chart-title');
+            
+            if (leadsData && leadsData.totals && Object.keys(leadsData.totals).length > 0) {
+                console.log('Lead totals:', leadsData.totals);
+                
+                // Update section title
+                if (sectionTitle) {
+                    sectionTitle.textContent = 'Top Lead Sources';
+                }
+                
+                // Clear and populate with lead sources
+                postcodeList.innerHTML = '';
+                Object.entries(leadsData.totals)
+                    .filter(([source, total]) => total > 0) // Only show sources with leads
+                    .sort(([,a], [,b]) => b - a) // Sort by total descending
+                    .slice(0, 8) // Top 8 sources
+                    .forEach(([source, total]) => {
+                        const item = document.createElement('div');
+                        item.className = 'postcode-item';
+                        item.innerHTML = `
+                            <span class="postcode-name">${source}</span>
+                            <span class="postcode-value">${total}</span>
+                        `;
+                        postcodeList.appendChild(item);
+                    });
+                    
+                console.log('Lead sources table updated');
+            } else {
+                // Fallback to postcode breakdown if no lead data
+                console.log('No lead data, showing postcodes');
+                if (sectionTitle) {
+                    sectionTitle.textContent = 'Current Month Breakdown';
+                }
+                
+                const months = Object.keys(propertyData);
+                if (months.length > 0 && propertyData[months[months.length - 1]]) {
+                    const currentMonth = months[months.length - 1];
+                    postcodeList.innerHTML = '';
+                    Object.entries(propertyData[currentMonth])
+                        .sort(([,a], [,b]) => b - a)
+                        .forEach(([postcode, count]) => {
+                            const item = document.createElement('div');
+                            item.className = 'postcode-item';
+                            item.innerHTML = `
+                                <span class="postcode-name" style="color: ${postcodeColors[postcode] || '#999999'}">${postcode}</span>
+                                <span class="postcode-value">${count}</span>
+                            `;
+                            postcodeList.appendChild(item);
+                        });
+                }
+            }
+        }
+
+        // Load and refresh data from all three sheets
+        async function loadData() {
+            console.log('Loading data from Google Sheets...');
+            try {
+                // Fetch all three datasets
+                const [propertyRawData, statsRawData, leadsRawData] = await Promise.all([
+                    fetchSheetData(PROPERTY_RANGE),
+                    fetchSheetData(STATS_RANGE),
+                    fetchSheetData(LEADS_RANGE)
+                ]);
+                
+                console.log('Property raw data:', propertyRawData);
+                console.log('Stats raw data:', statsRawData);
+                console.log('Leads raw data:', leadsRawData);
+                
+                // Process all the data
+                propertyData = processPropertyData(propertyRawData);
+                statsData = processStatsData(statsRawData);
+                leadsData = processLeadsData(leadsRawData);
+                
+                console.log('Final processed property data:', propertyData);
+                console.log('Final processed stats data:', statsData);
+                console.log('Final processed leads data:', leadsData);
+                
+                // Update dashboard with all data sources
+                createChart(propertyData);
+                updateStats(propertyData, statsData, leadsData);
+                updateTimestamp();
+                
+                console.log('Dashboard updated successfully with all data sources!');
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+
+        // Update timestamp
+        function updateTimestamp() {
+            const now = new Date();
+            document.getElementById('lastUpdate').textContent = now.toLocaleTimeString();
+        }
+        
+        // Testimonial carousel functionality
+        let currentTestimonial = 0;
+        const testimonials = document.querySelectorAll('.testimonial-content');
+        const dots = document.querySelectorAll('.dot');
+        
+        function showTestimonial(index) {
+            // Hide all testimonials
+            testimonials.forEach(testimonial => {
+                testimonial.classList.remove('active');
+            });
+            
+            // Hide all dots
+            dots.forEach(dot => {
+                dot.classList.remove('active');
+            });
+            
+            // Show current testimonial and dot
+            if (testimonials[index]) {
+                testimonials[index].classList.add('active');
+            }
+            if (dots[index]) {
+                dots[index].classList.add('active');
+            }
+        }
+        
+        function nextTestimonial() {
+            currentTestimonial = (currentTestimonial + 1) % testimonials.length;
+            showTestimonial(currentTestimonial);
+        }
+        
+        // Auto-rotate testimonials every 6 seconds
+        setInterval(nextTestimonial, 6000);
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            showTestimonial(0);
+            
+            // Refresh data every 30 seconds
+            setInterval(loadData, 30000);
+        });
+    </script>
+</body>
+</html>
